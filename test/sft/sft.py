@@ -1,22 +1,4 @@
 """
-# Full training
-CUDA_VISIBLE_DEVICES=0 python sft.py \
-    --model_name_or_path Qwen/Qwen2.5-Coder-0.5B-Instruct \
-    --dataset_name alpaca_gpt4 \
-    --learning_rate 2.0e-5 \
-    --num_train_epochs 1 \
-    --max_steps -1 \
-    --per_device_train_batch_size 2 \
-    --gradient_accumulation_steps 8 \
-    --gradient_checkpointing \
-    --max_seq_length 512 \
-    --bf16 True \
-    --logging_steps 25 \
-    --output_dir Qwen2-0.5B-SFT \
-    # --eval_strategy steps \
-    # --eval_steps 100 \
-    # --packing
-
 # LoRA
 CUDA_VISIBLE_DEVICES=0 python sft.py \
     --model_name_or_path Qwen/Qwen2.5-Coder-0.5B-Instruct \
