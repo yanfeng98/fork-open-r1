@@ -1,25 +1,21 @@
 # Open R1
 
-*A fully open reproduction of DeepSeek-R1. This repo is a work in progress, let's build it together!*
-
 **Table of Contents**  
-1. [Overview](#overview)  
-2. [Plan of attack](#plan-of-attack)  
-3. [Installation](#installation)  
-4. [Training models](#training-models)  
-   - [SFT](#sft)  
-   - [GRPO](#grpo)  
-5. [Evaluating models](#evaluating-models)  
-6. [Reproducing Deepseek's evaluation results on MATH-500](#reproducing-deepseeks-evaluation-results-on-math-500)  
-7. [Data generation](#data-generation)  
-   - [Generate data from a smol distilled R1 model](#generate-data-from-a-smol-distilled-r1-model)  
-   - [Generate data from DeepSeek-R1](#generate-data-from-deepseek-r1)  
-8. [Contributing](#contributing)
+- [Open R1](#open-r1)
+  - [Overview](#overview)
+    - [Plan of attack](#plan-of-attack)
+  - [Installation](#installation)
+  - [Training models](#training-models)
+    - [SFT](#sft)
+    - [GRPO](#grpo)
+  - [Evaluating models](#evaluating-models)
+  - [Reproducing Deepseek's evaluation results on MATH-500](#reproducing-deepseeks-evaluation-results-on-math-500)
+  - [Data generation](#data-generation)
+    - [Generate data from a smol distilled R1 model](#generate-data-from-a-smol-distilled-r1-model)
+    - [Generate data from DeepSeek-R1](#generate-data-from-deepseek-r1)
+  - [Contributing](#contributing)
 
 ## Overview
-
-The goal of this repo is to build the missing pieces of the R1 pipeline such that everybody can reproduce and build on top of it. The project is simple by design and mostly consists of:
-
 
 - `src/open_r1`: contains the scripts to train and evaluate models as well as generate synthetic data:
     - `grpo.py`: trains a model with GRPO on a given dataset.
@@ -42,8 +38,6 @@ We will use the DeepSeek-R1 [tech report](https://github.com/deepseek-ai/DeepSee
 
 
 ## Installation
-
-**Note: Libraries rely on CUDA 12.1. Double check your system if you get segmentation faults.**
 
 To run the code in this project, first, create a Python virtual environment using e.g. `uv`.
 To install `uv`, follow the [UV Installation Guide](https://docs.astral.sh/uv/getting-started/installation/).
@@ -91,9 +85,6 @@ sudo apt-get install git-lfs
 ## Training models
 
 We support training models with either DDP or DeepSpeed (ZeRO-2 and ZeRO-3). To switch between methods, simply change the path to the `accelerate` YAML config in `configs`.
-
-> [!NOTE]
-> The training commands below are configured for a node of 8 x H100s (80GB). For different hardware and topologies, you may need to tune the batch size and number of gradient accumulation steps.
 
 ### SFT
 
