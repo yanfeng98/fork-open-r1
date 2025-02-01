@@ -23,12 +23,13 @@ hub_model_id: Qwen2.5-1.5B-Open-R1-Distill
 hub_strategy: every_save
 learning_rate: 2.0e-5
 log_level: info
-logging_steps: 25
+logging_steps: 5
 logging_strategy: steps
 lr_scheduler_type: cosine
 packing: true
 max_seq_length: 512
-max_steps: -1
+# max_steps: -1
+max_steps: 15
 num_train_epochs: 1
 output_dir: save/Qwen2.5-0.5B-Open-R1-Distill
 overwrite_output_dir: true
