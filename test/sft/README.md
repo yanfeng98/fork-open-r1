@@ -7,5 +7,9 @@ ACCELERATE_LOG_LEVEL=info accelerate launch test/sft/sft.py --config test/sft/re
 ```
 
 ```shell
+ACCELERATE_LOG_LEVEL=info accelerate launch test/sft/sft.py --config test/sft/recipes/config_lora.yaml
+```
+
+```shell
 ACCELERATE_LOG_LEVEL=info accelerate launch --config_file recipes/accelerate_configs/zero3.yaml src/open_r1/sft.py --config recipes/qwen/Qwen2.5-1.5B-Instruct/sft/config_full.yaml
 ```

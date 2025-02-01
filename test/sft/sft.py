@@ -1,25 +1,4 @@
 """
-# LoRA
-CUDA_VISIBLE_DEVICES=0 python sft.py \
-    --model_name_or_path Qwen/Qwen2.5-Coder-0.5B-Instruct \
-    --dataset_name alpaca_gpt4 \
-    --learning_rate 2.0e-4 \
-    --num_train_epochs 1 \
-    --max_steps -1 \
-    --per_device_train_batch_size 2 \
-    --gradient_accumulation_steps 8 \
-    --gradient_checkpointing \
-    --max_seq_length 512 \
-    --bf16 True \
-    --logging_steps 25 \
-    --use_peft \
-    --lora_r 32 \
-    --lora_alpha 16 \
-    --output_dir Qwen2-0.5B-SFT
-    # --eval_strategy steps \
-    # --eval_steps 100 \
-    # --packing \
-
 # deepspeed
 accelerate launch --config_file=accelerate_configs/deepspeed_zero{1,2,3}.yaml --num_processes {NUM_GPUS} path_to_your_script.py --all_arguments_of_the_script
 
