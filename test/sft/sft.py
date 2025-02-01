@@ -116,8 +116,8 @@ if __name__ == "__main__":
     ################
     # Dataset
     ################
-    # dataset = load_dataset(script_args.dataset_name)
-    dataset = load_dataset("json", name=script_args.dataset_name, data_files="./alpaca_gpt4_data_zh.json")
+    dataset = load_dataset(script_args.dataset_name)
+    # dataset = load_dataset("json", name=script_args.dataset_name, data_files="./test/sft/alpaca_gpt4_data_zh.json")
     print(dataset)
 
     ################
@@ -127,8 +127,8 @@ if __name__ == "__main__":
         model=model_config.model_name_or_path,
         args=training_args,
         train_dataset=dataset[script_args.dataset_train_split],
-        # eval_dataset=dataset[script_args.dataset_test_split] if training_args.eval_strategy != "no" else None,
-        formatting_func=formatting_prompts_func,
+        eval_dataset=dataset[script_args.dataset_test_split] if training_args.eval_strategy != "no" else None,
+        # formatting_func=formatting_prompts_func,
         processing_class=tokenizer,
         peft_config=get_peft_config(model_config),
     )
