@@ -1,4 +1,4 @@
-from datasets import load_dataset
+from datasets import load_dataset, DatasetDict, Dataset
 from transformers import AutoTokenizer
 
 from trl import (
@@ -75,7 +75,30 @@ if __name__ == "__main__":
     ################
     dataset = load_dataset(script_args.dataset_name)
     # dataset = load_dataset("json", name=script_args.dataset_name, data_files="./test/sft/alpaca_gpt4_data_zh.json")
-    print(dataset)
+
+    def print_dataset_example(dataset: DatasetDict | Dataset) -> None:
+        print(dataset)
+        if isinstance(dataset, DatasetDict):
+            tmp_dataset = dataset["train"]
+        else:
+            tmp_dataset = dataset
+        example = next(iter(tmp_dataset))
+        print(f"system:\n{example['system']}\n\n")
+        print(f"conversations:\n{print_conversational_format(example['conversations'])}\n\n")
+        print(f"messages:\n{print_conversational_format(example['messages'])}")
+
+    def print_conversational_format(data: dict[str,str]) -> str:
+        con_data: str = ""
+        for item in data:
+            if 'from' in item and 'value' in item:
+                con_data += f"{item['from']}:\n{item['value']}\n\n"
+            elif 'role' in item and 'content' in item:
+                con_data += f"{item['role']}:\n{item['content']}\n\n"
+            else:
+                raise ValueError("data format is not right!")
+        return con_data
+
+    print_dataset_example(dataset)
 
     ################
     # Training
