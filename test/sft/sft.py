@@ -1,25 +1,3 @@
-"""
-# deepspeed
-accelerate launch --config_file=accelerate_configs/deepspeed_zero{1,2,3}.yaml --num_processes {NUM_GPUS} path_to_your_script.py --all_arguments_of_the_script
-
-accelerate launch --config_file=accelerate_configs/deepspeed_zero3.yaml --num_processes 8 sft.py \
-    --model_name_or_path Qwen/Qwen2.5-Coder-7B-Instruct \
-    --dataset_name alpaca_gpt4 \
-    --learning_rate 2.0e-5 \
-    --num_train_epochs 3 \
-    --max_steps -1 \
-    --per_device_train_batch_size 2 \
-    --gradient_accumulation_steps 4 \
-    --gradient_checkpointing \
-    --max_seq_length 512 \
-    --bf16 True \
-    --logging_steps 25 \
-    --output_dir Qwen2.5-Coder-7B-Instruct-SFT \
-    # --eval_strategy steps \
-    # --eval_steps 100 \
-    # --packing
-"""
-
 from datasets import load_dataset
 from transformers import AutoTokenizer
 
@@ -41,7 +19,7 @@ def formatting_prompts_func(examples):
         input_text = examples["input"][i]
         response = examples["output"][i]
 
-        if len(input_text) >= 1:
+        if len(input_text) > 0:
             text = f'''
 Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
             
