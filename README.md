@@ -1,25 +1,43 @@
 # Open R1
 
-*A fully open reproduction of DeepSeek-R1. This repo is a work in progress, let's build it together!*
-
 **Table of Contents**  
-1. [Overview](#overview)  
-2. [Plan of attack](#plan-of-attack)  
-3. [Installation](#installation)  
-4. [Training models](#training-models)  
-   - [SFT](#sft)  
-   - [GRPO](#grpo)  
-5. [Evaluating models](#evaluating-models)  
-6. [Reproducing Deepseek's evaluation results](#reproducing-deepseeks-evaluation-results)  
-7. [Data generation](#data-generation)  
-   - [Generate data from a smol distilled R1 model](#generate-data-from-a-smol-distilled-r1-model)  
-   - [Generate data from DeepSeek-R1](#generate-data-from-deepseek-r1)  
-8. [Contributing](#contributing)
+- [Open R1](#open-r1)
+  - [Overview](#overview)
+    - [Plan of attack](#plan-of-attack)
+  - [News 🗞️](#news-️)
+  - [Installation](#installation)
+  - [Training models](#training-models)
+    - [SFT distillation](#sft-distillation)
+    - [GRPO](#grpo)
+      - [GRPO dataset filtering](#grpo-dataset-filtering)
+      - [👨‍💻 Training with a code interpreter](#-training-with-a-code-interpreter)
+        - [E2B Provider](#e2b-provider)
+        - [Morph Provider](#morph-provider)
+        - [Dataset Requirements](#dataset-requirements)
+        - [Using Router Services](#using-router-services)
+      - [Competitive Programming problems: IOI \& CodeForces](#competitive-programming-problems-ioi--codeforces)
+        - [Piston](#piston)
+        - [Morph](#morph)
+        - [Example recipes](#example-recipes)
+    - [Launching jobs on a Slurm cluster](#launching-jobs-on-a-slurm-cluster)
+    - [Customising the dataset mixture](#customising-the-dataset-mixture)
+  - [Evaluating models](#evaluating-models)
+  - [Reproducing Deepseek's evaluation results](#reproducing-deepseeks-evaluation-results)
+    - [AIME 2024](#aime-2024)
+    - [MATH-500](#math-500)
+    - [GPQA Diamond](#gpqa-diamond)
+    - [LiveCodeBench](#livecodebench)
+  - [Data generation](#data-generation)
+    - [Generate data from a smol distilled R1 model](#generate-data-from-a-smol-distilled-r1-model)
+    - [Generate data from DeepSeek-R1](#generate-data-from-deepseek-r1)
+    - [Data decontamination](#data-decontamination)
+  - [Contributing](#contributing)
+  - [Acknowledgements](#acknowledgements)
+  - [Citation](#citation)
 
 ## Overview
 
-The goal of this repo is to build the missing pieces of the R1 pipeline such that everybody can reproduce and build on top of it. The project is simple by design and mostly consists of:
-
+The project is simple by design and mostly consists of:
 
 - `src/open_r1`: contains the scripts to train models as well as generate synthetic data:
     - `grpo.py`: trains a model with GRPO on a given dataset.
@@ -52,7 +70,6 @@ We will use the DeepSeek-R1 [tech report](https://github.com/deepseek-ai/DeepSee
 > Libraries rely on CUDA 12.4. If you see errors related to segmentation faults, double check the version your system is running with `nvcc --version`.
 
 To run the code in this project, first, create a Python virtual environment using e.g. `uv`.
-To install `uv`, follow the [UV Installation Guide](https://docs.astral.sh/uv/getting-started/installation/).
 
 
 > [!NOTE]
@@ -60,6 +77,8 @@ To install `uv`, follow the [UV Installation Guide](https://docs.astral.sh/uv/ge
 
 
 ```shell
+pip install --upgrade pip
+pip install uv
 uv venv openr1 --python 3.11 && source openr1/bin/activate && uv pip install --upgrade pip
 ```
 
@@ -100,9 +119,6 @@ sudo apt-get install git-lfs
 
 ## Training models
 
-> [!NOTE]
-> The training commands below are configured for a node of 8 x H100s (80GB). For different hardware and topologies, you may need to tune the batch size and number of gradient accumulation steps.
-
 We support training models with either DDP or DeepSpeed (ZeRO-2 and ZeRO-3). For example, to perform SFT on a dataset distilled from DeepSeek-R1 with reasoning traces such as [open-r1/Mixture-of-Thoughts](https://huggingface.co/datasets/open-r1/Mixture-of-Thoughts), run:
 
 ```shell
@@ -130,9 +146,6 @@ Currently, the following tasks are supported:
 
 * Supervised Fine-Tuning `sft`
 * Group Relative Policy Optimization `grpo`
-
-> [!TIP]
-> If you scale up/down the number of GPUs, we recommend also scaling up the per-device batch size or number of gradient accumulation steps to keep the global batch size constant.
 
 By default, these scripts will push each model to your Hugging Face Hub username, i.e. `{username}/{model_name}-{task}`. You can override the parameters in each YAML config by appending them to the command as follows: 
 
