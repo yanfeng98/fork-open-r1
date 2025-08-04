@@ -1,7 +1,7 @@
 import logging
 
 import datasets
-from datasets import DatasetDict, concatenate_datasets
+from datasets import Dataset, DatasetDict, concatenate_datasets
 
 from ..configs import ScriptArguments
 
@@ -23,12 +23,12 @@ def get_dataset(args: ScriptArguments) -> DatasetDict:
         return datasets.load_dataset(args.dataset_name, args.dataset_config)
     elif args.dataset_mixture:
         logger.info(f"Creating dataset mixture with {len(args.dataset_mixture.datasets)} datasets")
-        seed = args.dataset_mixture.seed
-        datasets_list = []
+        seed: int = args.dataset_mixture.seed
+        datasets_list: list[Dataset] = []
 
         for dataset_config in args.dataset_mixture.datasets:
             logger.info(f"Loading dataset for mixture: {dataset_config.id} (config: {dataset_config.config})")
-            ds = datasets.load_dataset(
+            ds: Dataset = datasets.load_dataset(
                 dataset_config.id,
                 dataset_config.config,
                 split=dataset_config.split,
@@ -44,12 +44,12 @@ def get_dataset(args: ScriptArguments) -> DatasetDict:
             datasets_list.append(ds)
 
         if datasets_list:
-            combined_dataset = concatenate_datasets(datasets_list)
+            combined_dataset: Dataset = concatenate_datasets(datasets_list)
             combined_dataset = combined_dataset.shuffle(seed=seed)
             logger.info(f"Created dataset mixture with {len(combined_dataset)} examples")
 
             if args.dataset_mixture.test_split_size is not None:
-                combined_dataset = combined_dataset.train_test_split(
+                combined_dataset: DatasetDict = combined_dataset.train_test_split(
                     test_size=args.dataset_mixture.test_split_size, seed=seed
                 )
                 logger.info(

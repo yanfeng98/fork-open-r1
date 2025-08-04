@@ -1,24 +1,9 @@
-# coding=utf-8
-# Copyright 2025 The HuggingFace Team. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 """Reward functions for GRPO training."""
 
-import asyncio
+import re
 import json
 import math
-import re
+import asyncio
 from functools import partial, update_wrapper
 from typing import Callable, Dict, Literal, Optional
 
@@ -36,11 +21,13 @@ from .utils.competitive_programming import patch_code as cf_patch_code
 from .utils.competitive_programming import score_submission as cf_score_submission
 from .utils.competitive_programming import score_subtask
 
+from open_r1.configs import GRPOScriptArguments
+
 
 def accuracy_reward(completions: list[list[dict[str, str]]], solution: list[str], **kwargs) -> list[Optional[float]]:
     """Reward function that checks if the completion is the same as the ground truth."""
-    contents = [completion[0]["content"] for completion in completions]
-    rewards = []
+    contents: list[str] = [completion[0]["content"] for completion in completions]
+    rewards: list[float] = []
     for content, sol in zip(contents, solution):
         gold_parsed = parse(
             sol,
@@ -82,15 +69,15 @@ def accuracy_reward(completions: list[list[dict[str, str]]], solution: list[str]
     return rewards
 
 
-def format_reward(completions, **kwargs):
+def format_reward(completions: list[list[dict[str, str]]], **kwargs) -> list[float]:
     """Reward function that checks if the reasoning process is enclosed within <think> and </think> tags, while the final answer is enclosed within <answer> and </answer> tags."""
-    pattern = r"^<think>\n.*?\n</think>\n<answer>\n.*?\n</answer>$"
-    completion_contents = [completion[0]["content"] for completion in completions]
+    pattern: str = r"^<think>\n.*?\n</think>\n<answer>\n.*?\n</answer>$"
+    completion_contents: list[str] = [completion[0]["content"] for completion in completions]
     matches = [re.match(pattern, content, re.DOTALL | re.MULTILINE) for content in completion_contents]
     return [1.0 if match else 0.0 for match in matches]
 
 
-def tag_count_reward(completions, **kwargs) -> list[float]:
+def tag_count_reward(completions: list[list[dict[str, str]]], **kwargs) -> list[float]:
     """Reward function that checks if we produce the desired number of think and answer tags associated with `format_reward()`.
 
     Adapted from: https://gist.github.com/willccbb/4676755236bb08cab5f4e54a0475d6fb#file-grpo_demo-py-L90
@@ -108,7 +95,7 @@ def tag_count_reward(completions, **kwargs) -> list[float]:
             count += 0.25
         return count
 
-    contents = [completion[0]["content"] for completion in completions]
+    contents: list[str] = [completion[0]["content"] for completion in completions]
     return [count_tags(c) for c in contents]
 
 
@@ -643,8 +630,8 @@ def get_soft_overlong_punishment(max_completion_len, soft_punish_cache):
     return soft_overlong_punishment_reward
 
 
-def get_reward_funcs(script_args) -> list[Callable]:
-    REWARD_FUNCS_REGISTRY = {
+def get_reward_funcs(script_args: GRPOScriptArguments) -> list[Callable]:
+    REWARD_FUNCS_REGISTRY: dict[str, Callable] = {
         "accuracy": accuracy_reward,
         "format": format_reward,
         "reasoning_steps": reasoning_steps_reward,
@@ -701,6 +688,6 @@ def get_reward_funcs(script_args) -> list[Callable]:
             soft_punish_cache=script_args.soft_punish_cache,
         ),
     }
-    reward_funcs = [REWARD_FUNCS_REGISTRY[func] for func in script_args.reward_funcs]
+    reward_funcs: list[Callable] = [REWARD_FUNCS_REGISTRY[func] for func in script_args.reward_funcs]
 
     return reward_funcs

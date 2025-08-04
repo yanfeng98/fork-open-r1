@@ -1,24 +1,14 @@
-# Copyright 2025 The HuggingFace Team. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-import logging
 import os
 import sys
+import logging
+from typing import Callable
 
 import datasets
+from datasets import DatasetDict
+
 import transformers
 from transformers import set_seed
+from transformers import set_seed, AutoModelForCausalLM, PreTrainedTokenizer
 from transformers.trainer_utils import get_last_checkpoint
 
 from open_r1.configs import GRPOConfig, GRPOScriptArguments
@@ -31,8 +21,7 @@ from trl import GRPOTrainer, ModelConfig, TrlParser, get_peft_config
 
 logger = logging.getLogger(__name__)
 
-
-def main(script_args, training_args, model_args):
+def main(script_args: GRPOScriptArguments, training_args: GRPOConfig, model_args: ModelConfig):
     # Set seed for reproducibility
     set_seed(training_args.seed)
 
@@ -71,25 +60,25 @@ def main(script_args, training_args, model_args):
         init_wandb_training(training_args)
 
     # Load the dataset
-    dataset = get_dataset(script_args)
+    dataset: DatasetDict = get_dataset(script_args)
 
     ################
     # Load tokenizer
     ################
-    tokenizer = get_tokenizer(model_args, training_args)
+    tokenizer: PreTrainedTokenizer = get_tokenizer(model_args, training_args)
 
     ##############
     # Load model #
     ##############
     logger.info("*** Loading model ***")
-    model = get_model(model_args, training_args)
+    model: AutoModelForCausalLM = get_model(model_args, training_args)
 
     # Get reward functions from the registry
-    reward_funcs = get_reward_funcs(script_args)
+    reward_funcs: list[Callable] = get_reward_funcs(script_args)
 
     # Format into conversation
-    def make_conversation(example, prompt_column: str = script_args.dataset_prompt_column):
-        prompt = []
+    def make_conversation(example: dict[str, str], prompt_column: str = script_args.dataset_prompt_column):
+        prompt: list[dict[str, str]] = []
 
         if training_args.system_prompt is not None:
             prompt.append({"role": "system", "content": training_args.system_prompt})
@@ -109,7 +98,7 @@ def main(script_args, training_args, model_args):
     #############################
     # Initialize the GRPO trainer
     #############################
-    trainer = GRPOTrainer(
+    trainer: GRPOTrainer = GRPOTrainer(
         model=model,
         reward_funcs=reward_funcs,
         args=training_args,
@@ -124,7 +113,7 @@ def main(script_args, training_args, model_args):
     # Training loop
     ###############
     logger.info("*** Train ***")
-    checkpoint = None
+    checkpoint: str = None
     if training_args.resume_from_checkpoint is not None:
         checkpoint = training_args.resume_from_checkpoint
     elif last_checkpoint is not None:
