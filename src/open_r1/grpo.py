@@ -15,7 +15,6 @@ from open_r1.configs import GRPOConfig, GRPOScriptArguments
 from open_r1.rewards import get_reward_funcs
 from open_r1.utils import get_dataset, get_model, get_tokenizer
 from open_r1.utils.callbacks import get_callbacks
-from open_r1.utils.wandb_logging import init_wandb_training
 from trl import GRPOTrainer, ModelConfig, TrlParser, get_peft_config
 
 
@@ -50,14 +49,11 @@ def main(script_args: GRPOScriptArguments, training_args: GRPOConfig, model_args
     logger.info(f"Training parameters {training_args}")
 
     # Check for last checkpoint
-    last_checkpoint = None
+    last_checkpoint: str = None
     if os.path.isdir(training_args.output_dir):
-        last_checkpoint = get_last_checkpoint(training_args.output_dir)
+        last_checkpoint: str = get_last_checkpoint(training_args.output_dir)
     if last_checkpoint is not None and training_args.resume_from_checkpoint is None:
         logger.info(f"Checkpoint detected, resuming training at {last_checkpoint=}.")
-
-    if "wandb" in training_args.report_to:
-        init_wandb_training(training_args)
 
     # Load the dataset
     dataset: DatasetDict = get_dataset(script_args)
@@ -89,7 +85,7 @@ def main(script_args: GRPOScriptArguments, training_args: GRPOConfig, model_args
         prompt.append({"role": "user", "content": example[prompt_column]})
         return {"prompt": prompt}
 
-    dataset = dataset.map(make_conversation)
+    dataset: DatasetDict = dataset.map(make_conversation)
 
     for split in dataset:
         if "messages" in dataset[split].column_names:
@@ -115,9 +111,9 @@ def main(script_args: GRPOScriptArguments, training_args: GRPOConfig, model_args
     logger.info("*** Train ***")
     checkpoint: str = None
     if training_args.resume_from_checkpoint is not None:
-        checkpoint = training_args.resume_from_checkpoint
+        checkpoint: str = training_args.resume_from_checkpoint
     elif last_checkpoint is not None:
-        checkpoint = last_checkpoint
+        checkpoint: str = last_checkpoint
     train_result = trainer.train(resume_from_checkpoint=checkpoint)
     metrics = train_result.metrics
     metrics["train_samples"] = len(dataset[script_args.dataset_train_split])
@@ -155,13 +151,6 @@ def main(script_args: GRPOScriptArguments, training_args: GRPOConfig, model_args
         metrics["eval_samples"] = len(dataset[script_args.dataset_test_split])
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
-
-    #############
-    # push to hub
-    #############
-    if training_args.push_to_hub:
-        logger.info("Pushing to hub...")
-        trainer.push_to_hub(**kwargs)
 
 
 if __name__ == "__main__":
